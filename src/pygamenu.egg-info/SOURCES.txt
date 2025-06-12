@@ -2,8 +2,17 @@ LICENSE
 README.md
 pyproject.toml
 setup.cfg
+src/pygamenu/__init__.py
 src/pygamenu.egg-info/PKG-INFO
 src/pygamenu.egg-info/SOURCES.txt
 src/pygamenu.egg-info/dependency_links.txt
 src/pygamenu.egg-info/requires.txt
 src/pygamenu.egg-info/top_level.txt
+src/pygamenu/compiler/__init__.py
+src/pygamenu/compiler/errors.py
+src/pygamenu/compiler/pmscript.py
+src/pygamenu/mainn/__init__.py
+src/pygamenu/mainn/eventlistener.py
+src/pygamenu/mainn/main.py
+src/pygamenu/utils/__init__.py
+src/pygamenu/utils/logging.py
