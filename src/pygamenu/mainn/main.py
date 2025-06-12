@@ -710,10 +710,14 @@ class View:
     
     def createElement(self,type_:str,id_:str,parent_id:str) -> Element:
         if type_ not in ELEMENTS:
-            log(f"CREATE ELEMENT: --> INVALID TYPE: element type {type_} does not exist")
-
+            log(f"CREATE ELEMENT: --> INVALID TYPE: element type {type_} does not exist. Skipping Operation", LogLevel.WARNING)
+            return
         current:Element = ELEMENTS[type_](parent_id,{},id_,[])
-        
+        if parent_id not in self.elements:
+            log(f"CREATE ELEMENT: Parent id {parent_id} doesn't exist. Skipping operation",LogLevel.WARNING)
+            return
+        if current.id in self.elements:
+            log(f"CREATE ELEMENT: ID {current.id} already in use. Overwriting old ID.", LogLevel.WARNING)
         if type_ == 'frame':
             if parent_id != 'global':
                 log(f"CREATE ELEMENT: New frame must have an ID of global. Skipping operation", LogLevel.WARNING)
@@ -727,9 +731,9 @@ class View:
             self.frames[list(self.frames.keys())[-1]].append(current)
         
 
-        if current.id in self.elements:
-            log(f"CREATE ELEMENT: ID {current.id} already in use. Overwriting old ID.", LogLevel.WARNING)
+
         current.set_callback_hook(self.__element_modify_callback__)
+        self.elements[parent_id].children.append(current)
         self.elements[current.id] = current
         
         self.__create_image_individual__(current)
