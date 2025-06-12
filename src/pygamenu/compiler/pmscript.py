@@ -215,7 +215,7 @@ class TextElement(Element):
     def __init__(self, parent_id:str,style:dict[str,str]={},id_:str=None,onclick=[],text:str='',modifiable:str="False",):
         super().__init__('text',parent_id,style,id_,{},False,onclick)
         self.text = text
-        self.modifiable = modifiable
+        self.modifiable = eval(modifiable)
         self.cursor = None
     def __str__(self):
         return f'ID: `{self.id}` ; TYPE: `{self.type}` ; Parent_ID: `{str(self.parent_id)}` ; STYLE_TAGS: `{self.style}`;\n Text: `{self.text}`\n'
