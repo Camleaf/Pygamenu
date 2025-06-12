@@ -730,7 +730,9 @@ class View:
         if current.id in self.elements:
             log(f"CREATE ELEMENT: ID {current.id} already in use. Overwriting old ID.", LogLevel.WARNING)
         self.elements[current.id] = current
+
         self.__create_image_individual__(current)
+        self.__recalc_rendered_frames__()
         return current
     
 
