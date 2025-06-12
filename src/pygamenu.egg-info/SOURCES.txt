@@ -1,0 +1,9 @@
+LICENSE
+README.md
+pyproject.toml
+setup.cfg
+src/pygamenu.egg-info/PKG-INFO
+src/pygamenu.egg-info/SOURCES.txt
+src/pygamenu.egg-info/dependency_links.txt
+src/pygamenu.egg-info/requires.txt
+src/pygamenu.egg-info/top_level.txt
