@@ -257,7 +257,7 @@ class PolygonElement(Element):
         if len(points) < 3:
             log(f"Polygon {self.id} has less than three points. Setting surface to blank", LogLevel.WARNING)
             self.points = [(0,0),(0,0),(0,0)]
-        self.__oncallback__(self)
+        self.__oncallback__()
     
 #############################
 
