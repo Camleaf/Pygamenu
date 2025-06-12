@@ -238,21 +238,24 @@ class PolygonElement(Element):
         super().__init__('polygon', parent_id, style, id_, {}, True,onclick)
         split_points = points.split('/')
         self.points = []
-        if len(split_points) < 3:
-            log(f"Polygon {self.id} has less than three points. Setting surface to blank")
+        if split_points == ['']:
             self.set_shape([(0,0),(0,0),(0,0)])
-        try:
-            
-            for pair in split_points:
-                self.points.append(tuple(map(float,pair.split(','))))
-        except TypeError:
-            log(f"Polygon {self.id} has an error with points format. Setting surface to blank")
-            self.set_shape([(0,0),(0,0),(0,0)])
+        else:
+            if len(split_points) < 3:
+                log(f"Polygon {self.id} has less than three points. Setting surface to blank", LogLevel.WARNING)
+                self.set_shape([(0,0),(0,0),(0,0)])
+            try:
+                
+                for pair in split_points:
+                    self.points.append(tuple(map(float,pair.split(','))))
+            except TypeError:
+                log(f"Polygon {self.id} has an error with points format. Setting surface to blank", LogLevel.WARNING)
+                self.set_shape([(0,0),(0,0),(0,0)])
     
     def set_shape(self,points:list[tuple[int,int]]):
         self.points = points
         if len(points) < 3:
-            log(f"Polygon {self.id} has less than three points. Setting surface to blank")
+            log(f"Polygon {self.id} has less than three points. Setting surface to blank", LogLevel.WARNING)
             self.points = [(0,0),(0,0),(0,0)]
     
 #############################
