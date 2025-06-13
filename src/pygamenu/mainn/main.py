@@ -798,7 +798,7 @@ class View:
     
     def noRender(self):
         return self.factory.createNoRender()
-
+    
     class ContextFactory:
         def __init__(self,View):
             self.View = View
@@ -807,13 +807,15 @@ class View:
             return self.noRender(self.View)
         
         class noRender:
-            def __enter__(self,View):
+            def __init__(self,View):
                 self.View = View
+            def __enter__(self):
                 self.View.flags['noRender'] = True
                 return self
 
             def __exit__(self, exc_type, exc_val, exc_tb):
                 self.View.flags['noRender'] = False
+                self.View.__recalc_rendered_frames__()
                 ...
         
 
