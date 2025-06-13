@@ -33,6 +33,7 @@ class View:
     frame_stack:list[str]
     eventlistener: EventListener
     activated_text: list[TextElement]
+    flags: dict[str,bool]
 
     def __init__(self, elements:dict[str,Element], states:dict[str,State], size:list[int,int], frames:dict[str,list[State]]):
         
@@ -47,6 +48,10 @@ class View:
         self.frame_stack = []
         self.eventlistener = EventListener()
         self.activated_text = []
+        self.flags = {
+            'noRender':False
+        }
+        self.factory = self.ContextFactory(self)
 
         self.addEventListener('mousedown',self.__mouseDown__)
         self.addEventListener('keydown',self.__keyDown__)
@@ -232,6 +237,8 @@ class View:
         self.__recalc_rendered_frames__()
     
     def __recalc_rendered_frames__(self):
+        if self.flags['noRender']:
+            return
         self.surf = pg.Surface(self.size,pg.SRCALPHA)
         self.surf.fill((0,0,0,255))
         for frame in self.frame_stack:
@@ -788,7 +795,31 @@ class View:
 
         state = self.getStateById(state_id)
         state.dependents.append(element_id)
+    
+    def noRender(self):
+        return self.factory.createNoRender()
 
+    class ContextFactory:
+        def __init__(self,View):
+            self.View = View
+        
+        def createNoRender(self):
+            return self.noRender(self.View)
+        
+        class noRender:
+            def __enter__(self,View):
+                self.View = View
+                self.View.flags['noRender'] = True
+                return self
+
+            def __exit__(self, exc_type, exc_val, exc_tb):
+                self.View.flags['noRender'] = False
+                ...
+        
+
+            
+
+        
 
     
 
