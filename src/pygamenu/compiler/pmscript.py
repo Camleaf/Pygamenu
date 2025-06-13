@@ -283,6 +283,12 @@ class State:
     def get_dependents(self):
         return self.dependents
 
+    def remove_dependent(self,id_:str):
+        self.dependents.remove(id_)
+
+    def add_dependent(self,id_:str):
+        self.dependents.append(id_)
+
     def set(self,value):
         if type(value) not in [str,int,float]:
             raise StateTypeError()

@@ -517,7 +517,7 @@ class View:
         surf = pg.Surface([buffer['width'],buffer['height']],pg.SRCALPHA)
         surf.fill((0,0,0,0))
         if border:
-            pg.draw.rect(surf,border_color,(0,0,buffer['width'],buffer['height']),border_radius=buffer['corner-radius'])
+            pg.draw.rect(surf,border_color,(0,0,buffer['width'],buffer['height']),border_radius=int(buffer['corner-radius']))
         
         pg.draw.rect(surf,background_color,
                      (border_space,border_space,
@@ -660,7 +660,7 @@ class View:
 
         img_size = im_surf.get_size()
         rect_img = pg.Surface(img_size,pg.SRCALPHA)
-        pg.draw.rect(rect_img, (255,255,255), (0, 0, *img_size), border_radius=buffer['corner-radius'])
+        pg.draw.rect(rect_img, (255,255,255), (0, 0, *img_size), border_radius=int(buffer['corner-radius']))
 
         im_surf.blit(rect_img,(0,0),None, pg.BLEND_RGBA_MIN)
 
@@ -668,8 +668,8 @@ class View:
         surf.blit(im_surf, (0,0))
 
         if buffer['border-width']> 0:
-            pg.draw.rect(temp_surf, border_color, (0,0,*img_size), border_radius=buffer['corner-radius'])
-            pg.draw.rect(temp_surf, (0,0,0,0),(buffer['border-width'],buffer['border-width'],img_size[0]-buffer['border-width']*2, img_size[1]-buffer['border-width']*2), border_radius=buffer['corner-radius'])
+            pg.draw.rect(temp_surf, border_color, (0,0,*img_size), border_radius=int(buffer['corner-radius']))
+            pg.draw.rect(temp_surf, (0,0,0,0),(buffer['border-width'],buffer['border-width'],img_size[0]-buffer['border-width']*2, img_size[1]-buffer['border-width']*2), border_radius=int(buffer['corner-radius']))
             #add a alpha in the centre to make a border
             surf.blit(temp_surf, (0,0))
         
@@ -728,7 +728,12 @@ class View:
             log(f"CREATE ELEMENT: New element must not have an ID of global except if frame. Skipping operation", LogLevel.WARNING)
             return
         else:
-            self.frames[list(self.frames.keys())[-1]].append(current)
+            # This needs to be a recursive search to find the correct frame
+            parent = self.getElementById(current.parent_id)
+            while parent.type != 'frame':
+                parent = self.getElementById(parent.parent_id)
+                
+            self.frames[parent.id].append(current)
         
 
 
@@ -740,6 +745,39 @@ class View:
         self.__recalc_rendered_frames__()
         return current
     
+
+    def deleteElement(self,id_:str):
+
+        # kills an element and it's children
+        el:Element = self.getElementById(id_)
+        delete_queue = deque()
+        delete_queue.append(el)
+        parent = self.getElementById(el.parent_id)
+        parent.children.remove(el)
+        while delete_queue:
+            el = delete_queue.popleft()
+            for child in el.children: # add children to be iteratively erased
+                delete_queue.append(child)
+            del self.elements[el.id]
+            # frame logic
+
+            # delete from frames
+            if el.type == 'frame':
+                del self.frames[el.id]
+                if el.id in self.frame_stack:
+                    self.frame_stack.remove(el.id)
+            else:
+                for frame in self.frames: 
+                    if el.id in self.frames[frame]:
+                        del self.frames[frame][el.id]
+            
+            # removes el from states
+            for state_id in self.states:
+                if el.id in self.states[state_id].get_dependents():
+                    self.states[state_id].remove_dependent(el.id)
+            del el
+        self.__recalc_rendered_frames__()
+            
 
     def stateAssign(self,element_id:str,state_id:str):
         if element_id not in self.elements:
