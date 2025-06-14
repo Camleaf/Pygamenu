@@ -41,7 +41,7 @@ class View:
         self.states = states
         self.frames = frames
         self.surf = pg.Surface(size,pg.SRCALPHA)
-        self.surf.fill((0,0,0,255))
+        self.surf.fill((0,0,0,0))
         self.width = size[0]
         self.height = size[1]
         self.size = size
@@ -74,6 +74,40 @@ class View:
         
         self.__create_initial_objects__('global')
     
+    #################
+    # Experimental scope stuff
+    ##############
+
+    def hoist(self,element:Element):
+        """This function hoists an element to the top of the render stack of ITS NEIGHBOURS"""
+        parent = self.getElementById(element.parent_id)
+        parent.children.remove(element)
+        parent.children.insert(0,element)
+
+    def sink(self, element: Element):
+        """Sister function to hoist, lowers an element to bottom of its render stack"""
+        parent = self.getElementById(element.parent_id)
+        parent.children.remove(element)
+        parent.children.append(element)
+    
+    def hoist_by_one(self,element: Element):
+        parent = self.getElementById(element.parent_id)
+        idx = parent.children.index(element)
+        if idx != 0:
+            parent.children.remove(element)
+            parent.children.insert(idx-1,element)
+    
+    def sink_by_one(self, element: Element):
+        parent = self.getElementById(element.parent_id)
+        idx = parent.children.index(element)
+        if idx != len(parent.children)-1:
+            parent.children.remove(element)
+            parent.children.insert(idx+1,element)
+
+
+
+
+
     ####################
     # event listener stuff
     ####################
@@ -240,7 +274,7 @@ class View:
         if self.flags['noRender']:
             return
         self.surf = pg.Surface(self.size,pg.SRCALPHA)
-        self.surf.fill((0,0,0,255))
+        self.surf.fill((0,0,0,0))
         for frame in self.frame_stack:
             self.__render_frame__(frame)
 
@@ -268,7 +302,7 @@ class View:
             
             if el.children_allowed:
                 for child_el in el.children:
-                    element_stack.append(child_el)
+                    element_stack.insert(0,child_el)
 
         # remove rendering in this function, this is meant to re-create images.
         # Will need to make a function that is dedicated to turning on and off frames
