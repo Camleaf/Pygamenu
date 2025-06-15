@@ -5,6 +5,7 @@ import re
 from collections import deque
 import pygame as pg
 import os, threading as th
+from typing import Any
 STYLES = {
     "position":{"types":['text'], "default":"relative", "accepted":["relative","absolute","block"]},
     "height":{"types":['number', 'percentage'], "default":0,"max":"parentheight"},
@@ -83,12 +84,28 @@ class View:
         parent = self.getElementById(element.parent_id)
         parent.children.remove(element)
         parent.children.insert(0,element)
+        frame = ''
+        for frame_id in self.frames:
+            if element in self.frames[frame_id]:
+                frame = frame_id
+        if frame=='':
+            log('XF5_6:   Wow you threw an error that really should never happen. Message me or something with the code because it needs to be fixed', LogLevel.FATAL)
+        self.frames[frame_id].remove(element)
+        self.frames[frame_id].insert(0,element)
 
     def sink(self, element: Element):
         """Sister function to hoist, lowers an element to bottom of its render stack"""
         parent = self.getElementById(element.parent_id)
         parent.children.remove(element)
         parent.children.append(element)
+        frame = ''
+        for frame_id in self.frames:
+            if element in self.frames[frame_id]:
+                frame = frame_id
+        if frame=='':
+            log('XF5_6:   Wow you threw an error that really should never happen. Message me or something with the code because it needs to be fixed', LogLevel.FATAL)
+        self.frames[frame_id].remove(element)
+        self.frames[frame_id].append(element)
     
     def hoist_by_one(self,element: Element):
         parent = self.getElementById(element.parent_id)
@@ -96,6 +113,7 @@ class View:
         if idx != 0:
             parent.children.remove(element)
             parent.children.insert(idx-1,element)
+
     
     def sink_by_one(self, element: Element):
         parent = self.getElementById(element.parent_id)
@@ -115,6 +133,8 @@ class View:
     def addEventListener(self,event:str,callback):
         self.eventlistener.add_callback(event,callback)
 
+    def killEventListener(self, event:str, callback:Any):
+        self.eventlistener.remove_callback(event,callback)
 
     def __mouseDown__(self,event, global_dict):
         # 
@@ -131,7 +151,6 @@ class View:
         mouse.mask = pg.mask.from_surface(mouse.image)
 
         for frame_id in self.frame_stack[::-1]:
-            print(frame_id)
             # this stuff still gets repeated but I need do do it twice for frams
             cur_frame = self.getElementById(frame_id)
             el_surf = cur_frame.get_surface()
@@ -144,7 +163,7 @@ class View:
 
 
             if pg.mask.Mask.overlap(boundary,mouse.mask,offset):
-                elements = self.frames[frame_id][::-1]
+                elements = self.frames[frame_id]
                 elements.append(cur_frame)
                 # iterate backwards to find the top
                 for el in elements:
