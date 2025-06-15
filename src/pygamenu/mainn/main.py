@@ -35,12 +35,14 @@ class View:
     eventlistener: EventListener
     activated_text: list[TextElement]
     flags: dict[str,bool]
+    defered_images:list[Element]
 
     def __init__(self, elements:dict[str,Element], states:dict[str,State], size:list[int,int], frames:dict[str,list[State]]):
         
         self.elements = elements
         self.states = states
         self.frames = frames
+        self.defered_images = []
         self.surf = pg.Surface(size,pg.SRCALPHA)
         self.surf.fill((0,0,0,0))
         self.width = size[0]
@@ -92,6 +94,7 @@ class View:
             log('XF5_6:   Wow you threw an error that really should never happen. Message me or something with the code because it needs to be fixed', LogLevel.FATAL)
         self.frames[frame_id].remove(element)
         self.frames[frame_id].insert(0,element)
+        self.__recalc_rendered_frames__()
 
     def sink(self, element: Element):
         """Sister function to hoist, lowers an element to bottom of its render stack"""
@@ -106,6 +109,7 @@ class View:
             log('XF5_6:   Wow you threw an error that really should never happen. Message me or something with the code because it needs to be fixed', LogLevel.FATAL)
         self.frames[frame_id].remove(element)
         self.frames[frame_id].append(element)
+        self.__recalc_rendered_frames__()
     
     def hoist_by_one(self,element: Element):
         parent = self.getElementById(element.parent_id)
@@ -113,6 +117,7 @@ class View:
         if idx != 0:
             parent.children.remove(element)
             parent.children.insert(idx-1,element)
+        self.__recalc_rendered_frames__()
 
     
     def sink_by_one(self, element: Element):
@@ -121,6 +126,7 @@ class View:
         if idx != len(parent.children)-1:
             parent.children.remove(element)
             parent.children.insert(idx+1,element)
+        self.__recalc_rendered_frames__()
 
 
 
@@ -334,7 +340,9 @@ class View:
 
     def __create_image_individual__(self, element:Element,sibling_height:int = 0):
         """Re-renders the styles for an individual element"""
-
+        if self.flags['noRender']:
+            self.defered_images.append(element)
+            return
         # set defaults for computed styles
         computed_styles = {
             'width':0,
@@ -707,16 +715,20 @@ class View:
 
         try:
             pg.image.load(element.src)
+            im_surf = pg.Surface([buffer['width']-buffer['border-width']*2,buffer['height']-buffer['border-width']*2], pg.SRCALPHA)
+            im_surf.blit(pg.transform.scale(pg.image.load(element.src),[buffer['width']-buffer['border-width']*2,buffer['height']-buffer['border-width']*2]))
         except:
-            log(f"FileNotFoundError: Image element {element.id} path {element.src} not found.", LogLevel.FATAL)
+            if element.src != '':
+                log(f"FileNotFoundError: Image element {element.id} path {element.src} not found. Setting Blank Frame", LogLevel.WARNING)
+
+            im_surf = pg.Surface([buffer['width'],buffer['height']],pg.SRCALPHA)
 
         # no clue what this code does I kind of just copied it from my old Pymenu version where I apparently forgot to comment it
         # I just changed variable name to the equivalent of this project and hope it works
         surf = pg.Surface([buffer['width'],buffer['height']],pg.SRCALPHA)
         surf.fill((0,0,0,0))
 
-        im_surf = pg.Surface([buffer['width']-buffer['border-width']*2,buffer['height']-buffer['border-width']*2], pg.SRCALPHA)
-        im_surf.blit(pg.transform.scale(pg.image.load(element.src),[buffer['width']-buffer['border-width']*2,buffer['height']-buffer['border-width']*2]))
+       
 
         img_size = im_surf.get_size()
         rect_img = pg.Surface(img_size,pg.SRCALPHA)
@@ -800,7 +812,6 @@ class View:
         current.set_callback_hook(self.__element_modify_callback__)
         self.elements[parent_id].children.append(current)
         self.elements[current.id] = current
-        
         self.__create_image_individual__(current)
         self.__recalc_rendered_frames__()
         return current
@@ -851,7 +862,7 @@ class View:
     
     def noRender(self):
         return self.factory.createNoRender()
-    
+
     class ContextFactory:
         def __init__(self,View):
             self.View = View
@@ -868,6 +879,9 @@ class View:
 
             def __exit__(self, exc_type, exc_val, exc_tb):
                 self.View.flags['noRender'] = False
+                for el in self.View.defered_images:
+                    self.View.__create_image_individual__(el)
+                self.View.defered_images = []
                 self.View.__recalc_rendered_frames__()
                 ...
         
