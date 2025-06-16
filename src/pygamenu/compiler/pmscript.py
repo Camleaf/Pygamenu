@@ -296,7 +296,7 @@ class State:
         self.__oncallback__()
     
     def get(self):
-        if not self.value:
+        if self.value is None:
             raise StateNotInitializedError(self.name)
         return self.value
     def set_callback_hook(self,method):
