@@ -296,7 +296,7 @@ class View:
         self.__recalc_rendered_frames__()
     
     def __recalc_rendered_frames__(self,force=False):
-        if self.flags['noRender'] and not force:
+        if self.flags['noRender'] and force is False:
             return
         self.surf = pg.Surface(self.size,pg.SRCALPHA)
         self.surf.fill((0,0,0,0))
