@@ -92,8 +92,8 @@ class View:
                 frame = frame_id
         if frame=='':
             log('XF5_6:   Wow you threw an error that really should never happen. Message me or something with the code because it needs to be fixed', LogLevel.FATAL)
-        self.frames[frame_id].remove(element)
-        self.frames[frame_id].insert(0,element)
+        self.frames[frame].remove(element)
+        self.frames[frame].insert(0,element)
         self.__recalc_rendered_frames__()
 
     def sink(self, element: Element):
@@ -107,8 +107,8 @@ class View:
                 frame = frame_id
         if frame=='':
             log('XF5_6:   Wow you threw an error that really should never happen. Message me or something with the code because it needs to be fixed', LogLevel.FATAL)
-        self.frames[frame_id].remove(element)
-        self.frames[frame_id].append(element)
+        self.frames[frame].remove(element)
+        self.frames[frame].append(element)
         self.__recalc_rendered_frames__()
     
     def hoist_by_one(self,element: Element):
