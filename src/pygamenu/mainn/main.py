@@ -295,8 +295,8 @@ class View:
         self.frame_stack.insert(index,id_)
         self.__recalc_rendered_frames__()
     
-    def __recalc_rendered_frames__(self):
-        if self.flags['noRender']:
+    def __recalc_rendered_frames__(self,force=False):
+        if self.flags['noRender'] and not force:
             return
         self.surf = pg.Surface(self.size,pg.SRCALPHA)
         self.surf.fill((0,0,0,0))
@@ -882,14 +882,13 @@ class View:
         class Render:
             def __init__(self,View):
                 self.View = View
-                self.prev = None
+
             def __enter__(self):
-                self.prev = self.View.flags['noRender']
-                self.View.flags['noRender'] = False
+
                 return self
 
             def __exit__(self, exc_type, exc_val, exc_tb):
-                self.View.flags['noRender'] = self.prev
+                self.View.__recalc_rendered_frames__(force=True)
                 ...
 
 
