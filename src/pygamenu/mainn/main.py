@@ -861,7 +861,12 @@ class View:
         state.dependents.append(element_id)
     
     def noRender(self):
+        """Used in with statement to ensure that nothing renders until the statement closes"""
         return self.factory.createNoRender()
+
+    def Render(self):
+        """Used in with statement to ensure that everything renders (useful for cancelling noRenders)"""
+        return self.factory.createRender()
 
     class ContextFactory:
         def __init__(self,View):
@@ -869,7 +874,25 @@ class View:
         
         def createNoRender(self):
             return self.noRender(self.View)
+
+        def createRender(self):
+            return self.Render(self.View)
         
+        
+        class Render:
+            def __init__(self,View):
+                self.View = View
+                self.prev = None
+            def __enter__(self):
+                self.prev = self.View.flags['noRender']
+                self.View.flags['noRender'] = False
+                return self
+
+            def __exit__(self, exc_type, exc_val, exc_tb):
+                self.View.flags['noRender'] = self.prev
+                ...
+
+
         class noRender:
             def __init__(self,View):
                 self.View = View
